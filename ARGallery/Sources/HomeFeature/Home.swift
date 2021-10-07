@@ -12,10 +12,12 @@ import SceneKit
 public struct Home: View {
     @State var session: ARSession
     @State var scene: SCNScene
+    @State var grids: [GridNode] = []
 
     public init() {
         let session = ARSession()
         let configuration = ARWorldTrackingConfiguration()
+        configuration.planeDetection = .vertical
         session.run(configuration)
         self.session = session
         self.scene = SCNScene()
@@ -24,8 +26,9 @@ public struct Home: View {
     public var body: some View {
         ZStack(alignment: .bottom) {
             ARSceneView(
-                session: self.$session,
-                scene: self.$scene
+                session: $session,
+                scene: $scene,
+                grids: $grids
             )
         }
     }
