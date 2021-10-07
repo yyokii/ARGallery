@@ -27,8 +27,7 @@ public struct Home: View {
         ZStack(alignment: .bottom) {
             ARSceneView(
                 session: $session,
-                scene: $scene,
-                grids: $grids
+                scene: $scene
             )
         }
     }

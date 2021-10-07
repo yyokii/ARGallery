@@ -13,7 +13,7 @@ struct ARSceneView: UIViewRepresentable {
     @Binding var session: ARSession
     @Binding var scene: SCNScene
     
-    @Binding var grids: [GridNode]
+    @State var grids: [GridNode] = []
     
     func makeUIView(context: Context) -> ARSCNView {
         let sceneView = ARSCNView(frame: .zero)
@@ -27,7 +27,7 @@ struct ARSceneView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Self.Coordinator {
-        Self.Coordinator(scene: self.$scene, grids: self.$grids)
+        Self.Coordinator(scene: $scene, grids: $grids)
     }
     
     func updateUIView(_ uiView: ARSCNView, context: Context) {
