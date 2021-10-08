@@ -64,18 +64,13 @@ extension ARSceneView {
         }
         
         @objc func tapped(gesture: UITapGestureRecognizer) {
-            // Get 2D position of touch event on screen
             let touchPosition = gesture.location(in: sceneView)
             
-            // Translate those 2D points to 3D points using hitTest (existing plane)
             guard let query = sceneView.raycastQuery(from: touchPosition, allowing: .existingPlaneGeometry, alignment: .vertical) else {
                 return
             }
-            let hitTestResults = session.raycast(query)
             
-//            let hitTestResults = sceneView.hitTest(touchPosition, types: .existingPlaneUsingExtent)
-
-            // Get hitTest results and ensure that the hitTest corresponds to a grid that has been placed on a wall
+            let hitTestResults = session.raycast(query)
             guard let hitTest = hitTestResults.first,
                   let anchor = hitTest.anchor as? ARPlaneAnchor,
                   let gridIndex = grids.firstIndex(where: { $0.anchor == anchor }) else {
