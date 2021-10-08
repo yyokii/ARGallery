@@ -15,6 +15,8 @@ public struct Home: View {
     @State var grids: [GridNode] = []
 
     public init() {
+        
+        #warning("creat ARClient or something is better?")
         let session = ARSession()
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = .vertical

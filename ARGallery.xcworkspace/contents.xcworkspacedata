@@ -2,9 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:ARGalleryApp/ARGalleryApp.xcodeproj">
+      location = "group:ARGallery">
    </FileRef>
    <FileRef
-      location = "group:ARGallery">
+      location = "group:ARGalleryApp/ARGalleryApp.xcodeproj">
    </FileRef>
 </Workspace>
