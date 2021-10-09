@@ -16,12 +16,14 @@ struct ARSceneView: UIViewRepresentable {
     @Binding var scene: SCNScene
     
     @State var grids: [GridNode] = []
-    
+    @Binding var selectedImage: UIImage
+
     func makeUIView(context: Context) -> ARSCNView {
         let sceneView = ARSCNView(frame: .zero)
         
         let gestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(gesture:)))
         sceneView.addGestureRecognizer(gestureRecognizer)
+        sceneView.delegate = context.coordinator
         
         #if DEBUG
         sceneView.showsStatistics = true
@@ -34,7 +36,7 @@ struct ARSceneView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Self.Coordinator {
-        Self.Coordinator(scene: $scene, session: $session, grids: $grids)
+        Self.Coordinator(scene: $scene, session: $session, grids: $grids, selectedImage: $selectedImage)
     }
     
     func updateUIView(_ uiView: ARSCNView, context: Context) {
@@ -42,7 +44,6 @@ struct ARSceneView: UIViewRepresentable {
             uiView.session.delegate = nil
             uiView.session = self.session
             uiView.session.delegate = context.coordinator
-            uiView.delegate = context.coordinator
         }
         uiView.scene = self.scene
     }
@@ -55,12 +56,15 @@ extension ARSceneView {
         var sceneView: ARSCNView!
         @Binding var scene: SCNScene
         @Binding var session: ARSession
+        
         @Binding var grids: [GridNode]
-
-        init(scene: Binding<SCNScene>, session: Binding<ARSession>, grids: Binding<[GridNode]>) {
+        @Binding var selectedImage: UIImage
+        
+        init(scene: Binding<SCNScene>, session: Binding<ARSession>, grids: Binding<[GridNode]>, selectedImage: Binding<UIImage>) {
             _scene = scene
             _session = session
             _grids = grids
+            _selectedImage = selectedImage
         }
         
         @objc func tapped(gesture: UITapGestureRecognizer) {
@@ -76,13 +80,13 @@ extension ARSceneView {
                   let gridIndex = grids.firstIndex(where: { $0.anchor == anchor }) else {
                 return
             }
-            addPainting(hitTest, grids[gridIndex])
+            addPainting(image: selectedImage, hitResult: hitTest, grid: grids[gridIndex])
         }
         
-        func addPainting(_ hitResult: ARRaycastResult, _ grid: GridNode) {
+        func addPainting(image: UIImage, hitResult: ARRaycastResult, grid: GridNode) {
             let planeGeometry = SCNPlane(width: 0.2, height: 0.35)
             let material = SCNMaterial()
-            material.diffuse.contents = UIImage(named: "dotcat", in: .module, with: nil)
+            material.diffuse.contents = selectedImage
             planeGeometry.materials = [material]
 
             let paintingNode = SCNNode(geometry: planeGeometry)

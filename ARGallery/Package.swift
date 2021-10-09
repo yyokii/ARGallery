@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "ARGallery",
     platforms: [
-        .iOS(.v14)
+        .iOS(.v15)
     ],
     products: [
         .library(
@@ -18,6 +18,11 @@ let package = Package(
         
         .target(
             name: "HomeFeature",
+            dependencies: [
+                "ImagePickerFeature"
+            ]),
+        .target(
+            name: "ImagePickerFeature",
             dependencies: []),
     ]
 )

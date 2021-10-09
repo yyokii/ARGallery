@@ -13,7 +13,7 @@
 		F55D1FD3270E1A08006FDE57 /* ARGalleryAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F55D1FD2270E1A08006FDE57 /* ARGalleryAppUITests.swift */; };
 		F55D1FD5270E1A08006FDE57 /* ARGalleryAppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F55D1FD4270E1A08006FDE57 /* ARGalleryAppUITestsLaunchTests.swift */; };
 		F55D1FE6270E2146006FDE57 /* AppMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = F55D1FE5270E2146006FDE57 /* AppMain.swift */; };
-		F55D1FE9270E2953006FDE57 /* ARGallery in Frameworks */ = {isa = PBXBuildFile; productRef = F55D1FE8270E2953006FDE57 /* ARGallery */; };
+		F55D1FEB2711DD89006FDE57 /* ARGallery in Frameworks */ = {isa = PBXBuildFile; productRef = F55D1FEA2711DD89006FDE57 /* ARGallery */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,7 +50,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F55D1FE9270E2953006FDE57 /* ARGallery in Frameworks */,
+				F55D1FEB2711DD89006FDE57 /* ARGallery in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,7 +143,7 @@
 			);
 			name = ARGalleryApp;
 			packageProductDependencies = (
-				F55D1FE8270E2953006FDE57 /* ARGallery */,
+				F55D1FEA2711DD89006FDE57 /* ARGallery */,
 			);
 			productName = ARGalleryApp;
 			productReference = F55D1FAF270E1A07006FDE57 /* ARGalleryApp.app */;
@@ -621,7 +621,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		F55D1FE8270E2953006FDE57 /* ARGallery */ = {
+		F55D1FEA2711DD89006FDE57 /* ARGallery */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ARGallery;
 		};

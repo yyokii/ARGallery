@@ -9,28 +9,39 @@ import ARKit
 import SwiftUI
 import SceneKit
 
-public struct Home: View {
-    @State var session: ARSession
-    @State var scene: SCNScene
-    @State var grids: [GridNode] = []
+import ImagePickerFeature
 
+public struct Home: View {
+    @State var isPresentedImagePicker = false
+    @State var selectedImage: UIImage
+    
+    @StateObject var vm = HomeViewModel()
+    
     public init() {
-        
-        #warning("creat ARClient or something is better?")
-        let session = ARSession()
-        let configuration = ARWorldTrackingConfiguration()
-        configuration.planeDetection = .vertical
-        session.run(configuration)
-        self.session = session
-        self.scene = SCNScene()
+        self.selectedImage = UIImage(named: "dotcat", in: .module, with: nil)!
     }
     
     public var body: some View {
         ZStack(alignment: .bottom) {
             ARSceneView(
-                session: $session,
-                scene: $scene
+                session: $vm.arSession,
+                scene: $vm.scene,
+                selectedImage: $selectedImage
             )
+            
+            Button("Select Image") {
+                isPresentedImagePicker.toggle()
+            }
         }
+        .sheet(isPresented: $isPresentedImagePicker) {
+            PHPickerView(configuration: vm.pickerConfig,
+                         selectedImage: $selectedImage)
+        }
+    }
+}
+
+struct Home_Previews: PreviewProvider {
+    static var previews: some View {
+        Home()
     }
 }
