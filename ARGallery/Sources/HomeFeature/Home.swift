@@ -10,9 +10,12 @@ import SwiftUI
 import SceneKit
 
 import ImagePickerFeature
+import SwiftUIHelpers
 
 public struct Home: View {
+    #warning("move to VM")
     @State var isPresentedImagePicker = false
+    @State var isHiddenProgress: Bool = false
     @State var selectedImage: UIImage
     
     @StateObject var vm = HomeViewModel()
@@ -22,20 +25,27 @@ public struct Home: View {
     }
     
     public var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: .top) {
             ARSceneView(
                 session: $vm.arSession,
                 scene: $vm.scene,
                 selectedImage: $selectedImage
             )
-            
-            Button("Select Image") {
-                isPresentedImagePicker.toggle()
+            VStack {
+                ProgressView(progress: $vm.progress,
+                             progressTintColor: .blue)
+                
+                Spacer()
+                
+                Button("Select Image") {
+                    isPresentedImagePicker.toggle()
+                }
             }
         }
         .sheet(isPresented: $isPresentedImagePicker) {
             PHPickerView(configuration: vm.pickerConfig,
-                         selectedImage: $selectedImage)
+                         selectedImage: $selectedImage,
+                         progress: $vm.progress)
         }
     }
 }

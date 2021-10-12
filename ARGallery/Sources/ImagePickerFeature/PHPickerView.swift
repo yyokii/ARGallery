@@ -18,11 +18,14 @@ public struct PHPickerView: UIViewControllerRepresentable {
     let configuration: PHPickerConfiguration
     @Environment(\.presentationMode) var presentationMode
     @Binding var selectedImage: UIImage
+    @Binding var progress: Progress?
     
     public init(configuration: PHPickerConfiguration,
-                selectedImage: Binding<UIImage>) {
+                selectedImage: Binding<UIImage>,
+                progress: Binding<Progress?>) {
         self.configuration = configuration
-        self._selectedImage = selectedImage
+        _selectedImage = selectedImage
+        _progress = progress
     }
 
     public func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -35,7 +38,7 @@ public struct PHPickerView: UIViewControllerRepresentable {
     }
 
     public func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(parent: self)
     }
 }
 
@@ -43,23 +46,23 @@ extension PHPickerView {
     public class Coordinator: PHPickerViewControllerDelegate {
         private let parent: PHPickerView
 
-        init(_ parent: PHPickerView) {
+        init(parent: PHPickerView) {
             self.parent = parent
         }
         
         public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             for image in results {
-                image.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (selectedImage, error) in
+                parent.progress = image.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (selectedImage, error) in
                     if let error = error {
                         print("error: \(error.localizedDescription)")
                         return
                     }
                     
-                    guard let wrapImage = selectedImage as? UIImage else {
+                    guard let image = selectedImage as? UIImage else {
                         return
                     }
                     
-                    self?.parent.selectedImage = wrapImage
+                    self?.parent.selectedImage = image
                 }
             }
             parent.presentationMode.wrappedValue.dismiss()

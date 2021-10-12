@@ -36,7 +36,7 @@ struct ARSceneView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Self.Coordinator {
-        Self.Coordinator(scene: $scene, session: $session, grids: $grids, selectedImage: $selectedImage)
+        Self.Coordinator(parent: self)
     }
     
     func updateUIView(_ uiView: ARSCNView, context: Context) {
@@ -54,17 +54,10 @@ struct ARSceneView: UIViewRepresentable {
 extension ARSceneView {
     final class Coordinator: NSObject {
         var sceneView: ARSCNView!
-        @Binding var scene: SCNScene
-        @Binding var session: ARSession
+        private let parent: ARSceneView
         
-        @Binding var grids: [GridNode]
-        @Binding var selectedImage: UIImage
-        
-        init(scene: Binding<SCNScene>, session: Binding<ARSession>, grids: Binding<[GridNode]>, selectedImage: Binding<UIImage>) {
-            _scene = scene
-            _session = session
-            _grids = grids
-            _selectedImage = selectedImage
+        init(parent: ARSceneView) {
+            self.parent = parent
         }
         
         @objc func tapped(gesture: UITapGestureRecognizer) {
@@ -74,19 +67,31 @@ extension ARSceneView {
                 return
             }
             
-            let hitTestResults = session.raycast(query)
+            let hitTestResults = parent.session.raycast(query)
             guard let hitTest = hitTestResults.first,
                   let anchor = hitTest.anchor as? ARPlaneAnchor,
-                  let gridIndex = grids.firstIndex(where: { $0.anchor == anchor }) else {
+                  let gridIndex = parent.grids.firstIndex(where: { $0.anchor == anchor }) else {
                 return
             }
-            addPainting(image: selectedImage, hitResult: hitTest, grid: grids[gridIndex])
+            addPainting(image: parent.selectedImage,
+                        hitResult: hitTest,
+                        grid: parent.grids[gridIndex])
         }
         
         func addPainting(image: UIImage, hitResult: ARRaycastResult, grid: GridNode) {
-            let planeGeometry = SCNPlane(width: 0.2, height: 0.35)
+            // Set up plane size
+            let shortSide: CGFloat = 0.3
+            let imageSizeRatio: CGFloat = image.size.width / image.size.height
+            var planeSize: (width: CGFloat, height: CGFloat) = (1, 1)
+            if imageSizeRatio >= 1 {
+                planeSize = (imageSizeRatio*shortSide, shortSide)
+            } else {
+                planeSize = (shortSide, imageSizeRatio*shortSide)
+            }
+            
+            let planeGeometry = SCNPlane(width: planeSize.width, height: planeSize.height)
             let material = SCNMaterial()
-            material.diffuse.contents = selectedImage
+            material.diffuse.contents = parent.selectedImage
             planeGeometry.materials = [material]
 
             let paintingNode = SCNNode(geometry: planeGeometry)
@@ -95,7 +100,7 @@ extension ARSceneView {
             paintingNode.eulerAngles = SCNVector3(paintingNode.eulerAngles.x + (-Float.pi / 2), paintingNode.eulerAngles.y, paintingNode.eulerAngles.z)
             paintingNode.position = SCNVector3(hitResult.worldTransform.columns.3.x, hitResult.worldTransform.columns.3.y, hitResult.worldTransform.columns.3.z)
 
-            scene.rootNode.addChildNode(paintingNode)
+            parent.scene.rootNode.addChildNode(paintingNode)
             grid.removeFromParentNode()
         }
     }
@@ -112,13 +117,13 @@ extension ARSceneView.Coordinator: ARSCNViewDelegate {
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         guard let planeAnchor = anchor as? ARPlaneAnchor, planeAnchor.alignment == .vertical else { return }
         let grid = GridNode(anchor: planeAnchor)
-        self.grids.append(grid)
+        parent.grids.append(grid)
         node.addChildNode(grid)
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
         guard let planeAnchor = anchor as? ARPlaneAnchor, planeAnchor.alignment == .vertical else { return }
-        let grid = self.grids
+        let grid = parent.grids
             .filter { grid in
                 grid.anchor.identifier == planeAnchor.identifier
             }
@@ -130,5 +135,4 @@ extension ARSceneView.Coordinator: ARSCNViewDelegate {
         
         foundGrid.update(anchor: planeAnchor)
     }
-    
 }

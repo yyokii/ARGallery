@@ -10,9 +10,19 @@ import Combine
 import PhotosUI
 
 final class HomeViewModel: ObservableObject {
-    let pickerConfig: PHPickerConfiguration
+    
+    // AR
     var arSession: ARSession
     var scene: SCNScene
+    var isPlacedImage: Bool = false
+    
+    // Picker
+    let pickerConfig: PHPickerConfiguration
+        
+    // Picking Image Progress
+    var progress: Progress?
+
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         // Setup picker configuration
