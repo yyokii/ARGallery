@@ -18,6 +18,7 @@ final class HomeViewModel: ObservableObject {
     
     // Picker
     let pickerConfig: PHPickerConfiguration
+    var selectedImage: UIImage
         
     // Picking Image Progress
     var progress: Progress?
@@ -25,6 +26,8 @@ final class HomeViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init() {
+        selectedImage = UIImage(named: "dotcat", in: .module, with: nil)!
+        
         // Setup picker configuration
         var pickerConfig = PHPickerConfiguration(photoLibrary: .shared())
         pickerConfig.filter = .images

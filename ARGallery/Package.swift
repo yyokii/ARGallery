@@ -20,12 +20,13 @@ let package = Package(
             name: "HomeFeature",
             dependencies: [
                 "ImagePickerFeature",
-                "SwiftUIHelpers",
-                "UIKitHelpers"
+                "SwiftUIHelpers"
             ]),
         .target(
             name: "ImagePickerFeature",
-            dependencies: []),
+            dependencies: [
+                "UIKitHelpers"
+            ]),
         .target(
             name: "SwiftUIHelpers",
             dependencies: []),

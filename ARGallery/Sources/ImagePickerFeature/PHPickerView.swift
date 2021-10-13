@@ -9,6 +9,8 @@ import Foundation
 import PhotosUI
 import SwiftUI
 
+import UIKitHelpers
+
 /*
  PHPickerViewController: https://developer.apple.com/documentation/photokit/phpickerviewcontroller
  Selecting Photos and Videos in iOS:
@@ -62,7 +64,8 @@ extension PHPickerView {
                         return
                     }
                     
-                    self?.parent.selectedImage = image
+                    let rotatedImage = image.reorientToUp()!
+                    self?.parent.selectedImage = rotatedImage
                 }
             }
             parent.presentationMode.wrappedValue.dismiss()

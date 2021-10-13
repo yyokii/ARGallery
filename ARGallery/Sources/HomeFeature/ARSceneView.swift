@@ -80,9 +80,7 @@ extension ARSceneView {
                         grid: parent.grids[gridIndex])
         }
         
-        func addPainting(image: UIImage, hitResult: ARRaycastResult, grid: GridNode) {
-            let image = image.reorientToUp()!
-            
+        func addPainting(image: UIImage, hitResult: ARRaycastResult, grid: GridNode) {            
             // Set up plane size
             let shortSide: CGFloat = 0.3
             let imageSizeRatio: CGFloat = image.size.width / image.size.height
@@ -109,7 +107,7 @@ extension ARSceneView {
             
             parent.scene.rootNode.addChildNode(paintingNode)
             grid.removeFromParentNode()
-        }        
+        }
     }
 }
 

@@ -15,13 +15,10 @@ import SwiftUIHelpers
 public struct Home: View {
     #warning("move to VM")
     @State var isPresentedImagePicker = false
-    @State var selectedImage: UIImage
     
     @StateObject var vm = HomeViewModel()
     
-    public init() {
-        self.selectedImage = UIImage(named: "dotcat", in: .module, with: nil)!
-    }
+    public init() {}
     
     #warning("現在選択されている画像を表示する")
     public var body: some View {
@@ -29,7 +26,7 @@ public struct Home: View {
             ARSceneView(
                 session: $vm.arSession,
                 scene: $vm.scene,
-                selectedImage: $selectedImage
+                selectedImage: $vm.selectedImage
             )
             VStack {
                 ProgressView(progress: $vm.progress,
@@ -44,7 +41,7 @@ public struct Home: View {
         }
         .sheet(isPresented: $isPresentedImagePicker) {
             PHPickerView(configuration: vm.pickerConfig,
-                         selectedImage: $selectedImage,
+                         selectedImage: $vm.selectedImage,
                          progress: $vm.progress)
         }
     }
