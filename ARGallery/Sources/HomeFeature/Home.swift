@@ -15,7 +15,6 @@ import SwiftUIHelpers
 public struct Home: View {
     #warning("move to VM")
     @State var isPresentedImagePicker = false
-    @State var isHiddenProgress: Bool = false
     @State var selectedImage: UIImage
     
     @StateObject var vm = HomeViewModel()
@@ -24,6 +23,7 @@ public struct Home: View {
         self.selectedImage = UIImage(named: "dotcat", in: .module, with: nil)!
     }
     
+    #warning("現在選択されている画像を表示する")
     public var body: some View {
         ZStack(alignment: .top) {
             ARSceneView(

@@ -9,6 +9,8 @@ import ARKit
 import SceneKit
 import SwiftUI
 
+import UIKitHelpers
+
 // MARK: UIViewRepresentable
 
 struct ARSceneView: UIViewRepresentable {
@@ -79,30 +81,35 @@ extension ARSceneView {
         }
         
         func addPainting(image: UIImage, hitResult: ARRaycastResult, grid: GridNode) {
+            let image = image.reorientToUp()!
+            
             // Set up plane size
             let shortSide: CGFloat = 0.3
             let imageSizeRatio: CGFloat = image.size.width / image.size.height
             var planeSize: (width: CGFloat, height: CGFloat) = (1, 1)
             if imageSizeRatio >= 1 {
-                planeSize = (imageSizeRatio*shortSide, shortSide)
-            } else {
                 planeSize = (shortSide, imageSizeRatio*shortSide)
+            } else {
+                planeSize = (imageSizeRatio*shortSide, shortSide)
             }
             
             let planeGeometry = SCNPlane(width: planeSize.width, height: planeSize.height)
             let material = SCNMaterial()
-            material.diffuse.contents = parent.selectedImage
+            material.diffuse.contents = image
             planeGeometry.materials = [material]
 
             let paintingNode = SCNNode(geometry: planeGeometry)
             paintingNode.transform = SCNMatrix4(hitResult.anchor!.transform)
-            // 画像が見えるようにx軸に関して90度回転させる
-            paintingNode.eulerAngles = SCNVector3(paintingNode.eulerAngles.x + (-Float.pi / 2), paintingNode.eulerAngles.y, paintingNode.eulerAngles.z)
+            
+            // x: 画像が見えるように90度回転させる
+            paintingNode.eulerAngles = SCNVector3(paintingNode.eulerAngles.x + (-Float.pi / 2),
+                                                  paintingNode.eulerAngles.y,
+                                                  paintingNode.eulerAngles.z)
             paintingNode.position = SCNVector3(hitResult.worldTransform.columns.3.x, hitResult.worldTransform.columns.3.y, hitResult.worldTransform.columns.3.z)
-
+            
             parent.scene.rootNode.addChildNode(paintingNode)
             grid.removeFromParentNode()
-        }
+        }        
     }
 }
 
