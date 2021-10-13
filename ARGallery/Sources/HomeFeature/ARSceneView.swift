@@ -23,8 +23,12 @@ struct ARSceneView: UIViewRepresentable {
     func makeUIView(context: Context) -> ARSCNView {
         let sceneView = ARSCNView(frame: .zero)
         
-        let gestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(gesture:)))
-        sceneView.addGestureRecognizer(gestureRecognizer)
+        // Set up gesture recognizer
+        let pinchGestureRecognizer = UIPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.pinched(gesture:)))
+        let tapGestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped(gesture:)))
+        sceneView.addGestureRecognizer(pinchGestureRecognizer)
+        sceneView.addGestureRecognizer(tapGestureRecognizer)
+        
         sceneView.delegate = context.coordinator
         
         #if DEBUG
@@ -55,11 +59,34 @@ struct ARSceneView: UIViewRepresentable {
 
 extension ARSceneView {
     final class Coordinator: NSObject {
+        private var lastGestureScale: CGFloat = 1
+        private var paintingNode: SCNNode?
         var sceneView: ARSCNView!
+        
         private let parent: ARSceneView
         
         init(parent: ARSceneView) {
             self.parent = parent
+        }
+        
+        @objc func pinched(gesture: UIPinchGestureRecognizer) {
+            guard let paintingNode = paintingNode else {
+                return
+            }
+            
+            let newGestureScale: CGFloat = gesture.scale
+            
+            let diff = Float(newGestureScale - lastGestureScale)
+            let currentScale = paintingNode.scale
+            
+            // Modify scale
+            paintingNode.scale = SCNVector3Make(
+                currentScale.x * (1 + diff),
+                currentScale.y * (1 + diff),
+                currentScale.z * (1 + diff)
+            )
+            
+            lastGestureScale = newGestureScale
         }
         
         @objc func tapped(gesture: UITapGestureRecognizer) {
@@ -106,6 +133,8 @@ extension ARSceneView {
             paintingNode.position = SCNVector3(hitResult.worldTransform.columns.3.x, hitResult.worldTransform.columns.3.y, hitResult.worldTransform.columns.3.z)
             
             parent.scene.rootNode.addChildNode(paintingNode)
+            self.paintingNode = paintingNode
+            
             grid.removeFromParentNode()
         }
     }
