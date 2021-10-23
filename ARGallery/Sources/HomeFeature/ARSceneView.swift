@@ -17,7 +17,6 @@ struct ARSceneView: UIViewRepresentable {
     @Binding var session: ARSession
     @Binding var scene: SCNScene
     
-    @State var grids: [GridNode] = []
     @Binding var selectedImage: UIImage
 
     func makeUIView(context: Context) -> ARSCNView {
@@ -90,25 +89,12 @@ extension ARSceneView {
         }
         
         @objc func tapped(gesture: UITapGestureRecognizer) {
-            let touchPosition = gesture.location(in: sceneView)
-            
-            guard let query = sceneView.raycastQuery(from: touchPosition, allowing: .existingPlaneGeometry, alignment: .vertical) else {
-                return
-            }
-            
-            let hitTestResults = parent.session.raycast(query)
-            guard let hitTest = hitTestResults.first,
-                  let anchor = hitTest.anchor as? ARPlaneAnchor,
-                  let gridIndex = parent.grids.firstIndex(where: { $0.anchor == anchor }) else {
-                return
-            }
-            addPainting(image: parent.selectedImage,
-                        hitResult: hitTest,
-                        grid: parent.grids[gridIndex])
+            placePainting()
         }
         
-        func addPainting(image: UIImage, hitResult: ARRaycastResult, grid: GridNode) {            
+        func placePainting() {
             // Set up plane size
+            let image = parent.selectedImage
             let shortSide: CGFloat = 0.3
             let imageSizeRatio: CGFloat = image.size.width / image.size.height
             var planeSize: (width: CGFloat, height: CGFloat) = (1, 1)
@@ -118,24 +104,29 @@ extension ARSceneView {
                 planeSize = (imageSizeRatio*shortSide, shortSide)
             }
             
+            // Create paintingNode
             let planeGeometry = SCNPlane(width: planeSize.width, height: planeSize.height)
             let material = SCNMaterial()
             material.diffuse.contents = image
             planeGeometry.materials = [material]
-
             let paintingNode = SCNNode(geometry: planeGeometry)
-            paintingNode.transform = SCNMatrix4(hitResult.anchor!.transform)
             
-            // x: 画像が見えるように90度回転させる
-            paintingNode.eulerAngles = SCNVector3(paintingNode.eulerAngles.x + (-Float.pi / 2),
-                                                  paintingNode.eulerAngles.y,
-                                                  paintingNode.eulerAngles.z)
-            paintingNode.position = SCNVector3(hitResult.worldTransform.columns.3.x, hitResult.worldTransform.columns.3.y, hitResult.worldTransform.columns.3.z)
+            // Set up node position
+            let position = SCNVector3(x: 0, y: 0, z: -0.7)
+            let camera = sceneView.pointOfView!
+            let nodePosition = camera.convertPosition(position, to: nil)
             
+            paintingNode.position = nodePosition
+            paintingNode.eulerAngles = camera.eulerAngles
+            
+            deleteCurrentPainting()
             parent.scene.rootNode.addChildNode(paintingNode)
             self.paintingNode = paintingNode
-            
-            grid.removeFromParentNode()
+        }
+        
+        func deleteCurrentPainting() {
+            paintingNode?.removeFromParentNode()
+            paintingNode = nil
         }
     }
 }
@@ -148,25 +139,4 @@ extension ARSceneView.Coordinator: ARSessionDelegate {}
 
 extension ARSceneView.Coordinator: ARSCNViewDelegate {
     
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        guard let planeAnchor = anchor as? ARPlaneAnchor, planeAnchor.alignment == .vertical else { return }
-        let grid = GridNode(anchor: planeAnchor)
-        parent.grids.append(grid)
-        node.addChildNode(grid)
-    }
-    
-    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
-        guard let planeAnchor = anchor as? ARPlaneAnchor, planeAnchor.alignment == .vertical else { return }
-        let grid = parent.grids
-            .filter { grid in
-                grid.anchor.identifier == planeAnchor.identifier
-            }
-            .first
-        
-        guard let foundGrid = grid else {
-            return
-        }
-        
-        foundGrid.update(anchor: planeAnchor)
-    }
 }
