@@ -60,6 +60,7 @@ extension ARSceneView {
     final class Coordinator: NSObject {
         private var lastGestureScale: CGFloat = 1
         private var paintingNode: SCNNode?
+        
         var sceneView: ARSCNView!
         
         private let parent: ARSceneView
@@ -92,22 +93,48 @@ extension ARSceneView {
             placePainting()
         }
         
+        /**
+         Place an image in space.
+         The node hierarchy is as follows
+         
+         paintingNode
+            - image
+            - frameNode
+                - leftFrameNode
+                - TopFrameNode
+                - ...
+         */
         func placePainting() {
-            // Set up plane size
+            let paintingSize = computePaintingSize()
+            
+            // Create node
+            let paintingNode = createPaintingNode(paintingSize: paintingSize)
+            let frameNode = createFrameNode(contentWith: Float(paintingSize.width), contentHeight: Float(paintingSize.height))
+            paintingNode.addChildNode(frameNode)
+            
+            deleteCurrentPainting()
+            parent.scene.rootNode.addChildNode(paintingNode)
+            self.paintingNode = paintingNode
+        }
+        
+        func computePaintingSize() -> CGSize {
             let image = parent.selectedImage
             let shortSide: CGFloat = 0.3
             let imageSizeRatio: CGFloat = image.size.width / image.size.height
-            var planeSize: (width: CGFloat, height: CGFloat) = (1, 1)
+            var planeSize: CGSize = .init(width: 0, height: 0)
             if imageSizeRatio >= 1 {
-                planeSize = (shortSide, imageSizeRatio*shortSide)
+                planeSize = .init(width: shortSide, height: imageSizeRatio*shortSide)
             } else {
-                planeSize = (imageSizeRatio*shortSide, shortSide)
+                planeSize = .init(width: imageSizeRatio*shortSide, height: shortSide)
             }
-            
+            return planeSize
+        }
+        
+        func createPaintingNode(paintingSize: CGSize) -> SCNNode {
             // Create paintingNode
-            let planeGeometry = SCNPlane(width: planeSize.width, height: planeSize.height)
+            let planeGeometry = SCNPlane(width: paintingSize.width, height: paintingSize.height)
             let material = SCNMaterial()
-            material.diffuse.contents = image
+            material.diffuse.contents = parent.selectedImage
             planeGeometry.materials = [material]
             let paintingNode = SCNNode(geometry: planeGeometry)
             
@@ -119,9 +146,53 @@ extension ARSceneView {
             paintingNode.position = nodePosition
             paintingNode.eulerAngles = camera.eulerAngles
             
-            deleteCurrentPainting()
-            parent.scene.rootNode.addChildNode(paintingNode)
-            self.paintingNode = paintingNode
+            return paintingNode
+        }
+        
+        func createFrameNode(contentWith: Float, contentHeight: Float) -> SCNNode {
+            // Set up parent frame node
+            let framePosition = SCNVector3(x: 0, y: 0, z: 0)
+            let frameNode = SCNNode()
+            frameNode.position = framePosition
+            
+            // Set up frames
+            let frameWidth: CGFloat = 0.02
+            let frameHeight: CGFloat = CGFloat(contentHeight)
+            let frameLength: CGFloat = 0.01
+            
+            let leftFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
+            leftFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            let leftFrameNode = SCNNode(geometry: leftFrameGeometry)
+            let leftFramePosition = SCNVector3(x: -contentWith/2, y: 0, z: 0)
+            leftFrameNode.position = leftFramePosition
+            
+            let topFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
+            topFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            let topFrameNode = SCNNode(geometry: topFrameGeometry)
+            let topFramePosition = SCNVector3(x: 0, y: contentHeight/2, z: 0)
+            topFrameNode.eulerAngles.z = .pi/2
+            topFrameNode.position = topFramePosition
+            
+            let rightFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
+            rightFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            let rightFrameNode = SCNNode(geometry: rightFrameGeometry)
+            let rightFramePosition = SCNVector3(x: contentWith/2, y: 0, z: 0)
+            rightFrameNode.position = rightFramePosition
+            
+            let bottomFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
+            bottomFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            let bottomFrameNode = SCNNode(geometry: bottomFrameGeometry)
+            let bottomFramePosition = SCNVector3(x: 0, y: -contentHeight/2, z: 0)
+            bottomFrameNode.eulerAngles.z = .pi/2
+            bottomFrameNode.position = bottomFramePosition
+            
+            // Add nodes
+            frameNode.addChildNode(leftFrameNode)
+            frameNode.addChildNode(topFrameNode)
+            frameNode.addChildNode(rightFrameNode)
+            frameNode.addChildNode(bottomFrameNode)
+            
+            return frameNode
         }
         
         func deleteCurrentPainting() {
