@@ -170,30 +170,33 @@ extension ARSceneView {
             let frameWidth: CGFloat = 0.02
             let frameHeight: CGFloat = CGFloat(contentHeight)
             let frameLength: CGFloat = 0.01
+            let texture =  UIImage(named:"texture_wood_dark", in: .module, with: nil)
+            let absPositionX: Float = contentWith/2 + Float(frameWidth)/2
+            let absPositionY: Float = contentHeight/2 + Float(frameWidth)/2
             
             let leftFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
-            leftFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            leftFrameGeometry.firstMaterial?.diffuse.contents = texture
             let leftFrameNode = SCNNode(geometry: leftFrameGeometry)
-            let leftFramePosition = SCNVector3(x: -contentWith/2, y: 0, z: 0)
+            let leftFramePosition = SCNVector3(x: -(absPositionX), y: 0, z: 0)
             leftFrameNode.position = leftFramePosition
             
-            let topFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
-            topFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            let topFrameGeometry = SCNBox(width: frameWidth, height: CGFloat(contentWith) + frameWidth * 2, length: frameLength, chamferRadius: 0)
+            topFrameGeometry.firstMaterial?.diffuse.contents = texture
             let topFrameNode = SCNNode(geometry: topFrameGeometry)
-            let topFramePosition = SCNVector3(x: 0, y: contentHeight/2, z: 0)
+            let topFramePosition = SCNVector3(x: 0, y: absPositionY, z: 0)
             topFrameNode.eulerAngles.z = .pi/2
             topFrameNode.position = topFramePosition
             
             let rightFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
-            rightFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            rightFrameGeometry.firstMaterial?.diffuse.contents = texture
             let rightFrameNode = SCNNode(geometry: rightFrameGeometry)
-            let rightFramePosition = SCNVector3(x: contentWith/2, y: 0, z: 0)
+            let rightFramePosition = SCNVector3(x: absPositionX, y: 0, z: 0)
             rightFrameNode.position = rightFramePosition
             
-            let bottomFrameGeometry = SCNBox(width: frameWidth, height: frameHeight, length: frameLength, chamferRadius: 0)
-            bottomFrameGeometry.firstMaterial?.diffuse.contents = UIColor.red
+            let bottomFrameGeometry = SCNBox(width: frameWidth, height: CGFloat(contentWith) + frameWidth * 2, length: frameLength, chamferRadius: 0)
+            bottomFrameGeometry.firstMaterial?.diffuse.contents = texture
             let bottomFrameNode = SCNNode(geometry: bottomFrameGeometry)
-            let bottomFramePosition = SCNVector3(x: 0, y: -contentHeight/2, z: 0)
+            let bottomFramePosition = SCNVector3(x: 0, y: -absPositionY, z: 0)
             bottomFrameNode.eulerAngles.z = .pi/2
             bottomFrameNode.position = bottomFramePosition
             
