@@ -11,6 +11,10 @@ import SwiftUI
 
 import UIKitHelpers
 
+struct CubicObject {
+    var position: CGPoint
+}
+
 // MARK: UIViewRepresentable
 
 struct ARSceneView: UIViewRepresentable {
@@ -103,16 +107,23 @@ extension ARSceneView {
                 - leftFrameNode
                 - TopFrameNode
                 - ...
+            - (others)
          */
-        func placePainting() {
+        private func placePainting() {
+            deleteCurrentPainting()
+
             let paintingSize = computePaintingSize()
+            let capture = sceneView.snapshot()
             
-            // Create node
+            // Create nodes
             let paintingNode = createPaintingNode(paintingSize: paintingSize)
             let frameNode = createFrameNode(contentWith: Float(paintingSize.width), contentHeight: Float(paintingSize.height))
-            paintingNode.addChildNode(frameNode)
+            let objectNode = createCubicObjectNodes(of: paintingSize, capturedImage: capture)
             
-            deleteCurrentPainting()
+            // Add nodes
+            paintingNode.addChildNode(frameNode)
+            paintingNode.addChildNode(objectNode)
+            
             parent.scene.rootNode.addChildNode(paintingNode)
             self.paintingNode = paintingNode
         }
@@ -195,7 +206,41 @@ extension ARSceneView {
             return frameNode
         }
         
-        func deleteCurrentPainting() {
+        private func createCubicObjectNodes(of painting: CGSize, capturedImage: UIImage) -> SCNNode {
+            // Set up parent frame node
+            let surroundingObjectsNode = SCNNode()
+            surroundingObjectsNode.position = SCNVector3(x: 0, y: 0, z: 0)
+            
+            // Set up objects
+            let size: CGFloat = .random(in: 0.05...0.07)
+            
+            let objects: [CubicObject] = [
+                .init(position: .init(x: -(painting.width/2), y: painting.height/2)),
+                .init(position: .init(x: -(painting.width/2), y: -painting.height/2)),
+                .init(position: .init(x: painting.width/2, y: painting.height/2)),
+                .init(position: .init(x: painting.width/2, y: -painting.height/2))
+            ]
+            
+            for object in objects {
+                let geometry = SCNBox(width: size, height: size, length: size, chamferRadius: 0)
+                geometry.firstMaterial?.diffuse.contents = capturedImage
+                let node = SCNNode(geometry: geometry)
+                let position = SCNVector3(x: Float(object.position.x), y: Float(object.position.y), z: 0)
+                node.position = position
+                let rotateOne = SCNAction.rotateBy(x: .random(in: 5...10), y: .random(in: 5...10), z: .random(in: 5...10), duration: 20.0)
+                let repeatForever = SCNAction.repeatForever(rotateOne)
+                node.runAction(repeatForever)
+                surroundingObjectsNode.addChildNode(node)
+            }
+            
+            let rotateOne = SCNAction.rotateBy(x: .random(in: 0...10), y: .random(in: 15...20), z: .random(in: 15...20), duration: 20.0)
+            let repeatForever = SCNAction.repeatForever(rotateOne)
+            surroundingObjectsNode.runAction(repeatForever)
+            
+            return surroundingObjectsNode
+        }
+        
+        private func deleteCurrentPainting() {
             paintingNode?.removeFromParentNode()
             paintingNode = nil
         }
