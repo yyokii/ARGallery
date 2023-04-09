@@ -8,41 +8,59 @@
 import ARKit
 import SwiftUI
 import SceneKit
+import PhotosUI
 
 import ImagePickerFeature
 import SwiftUIHelpers
 
 public struct Home: View {
-    #warning("move to VM")
     @State var isPresentedImagePicker = false
-    
+
     @StateObject var vm = HomeViewModel()
-    
+
+    @State private var selectedPickerItem: PhotosPickerItem?
+    @State private var selectedImage: UIImage =  UIImage(named: "dotcat", in: .module, with: nil)!
+
     public init() {}
-    
-    #warning("現在選択されている画像を表示する")
+
     public var body: some View {
         ZStack(alignment: .top) {
             ARSceneView(
                 session: $vm.arSession,
                 scene: $vm.scene,
-                selectedImage: $vm.selectedImage
+                selectedImage: $selectedImage
             )
             VStack {
                 ProgressView(progress: $vm.progress,
                              progressTintColor: .blue)
-                
+
                 Spacer()
-                
-                Button("Select Image") {
-                    isPresentedImagePicker.toggle()
-                }
+
+                Image(uiImage: vm.selectedImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height:150)
+
+                PhotosPicker("Select image", selection: $selectedPickerItem, matching: .images)
             }
         }
         .sheet(isPresented: $isPresentedImagePicker) {
             PHPickerView(configuration: vm.pickerConfig,
                          selectedImage: $vm.selectedImage,
                          progress: $vm.progress)
+        }
+        .onChange(of: selectedPickerItem) { _ in
+            Task {
+                if let data = try? await selectedPickerItem?.loadTransferable(type: Data.self) {
+                    if let uiImage = UIImage(data: data),
+                    let rotatedImage = uiImage.reorientToUp() {
+                        selectedImage = rotatedImage
+                        return
+                    }
+                }
+
+                print("📝 Failed")
+            }
         }
     }
 }

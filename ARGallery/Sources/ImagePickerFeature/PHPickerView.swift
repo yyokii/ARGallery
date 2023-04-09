@@ -31,13 +31,12 @@ public struct PHPickerView: UIViewControllerRepresentable {
     }
 
     public func makeUIViewController(context: Context) -> PHPickerViewController {
-            let controller = PHPickerViewController(configuration: configuration)
-            controller.delegate = context.coordinator
-            return controller
+        let controller = PHPickerViewController(configuration: configuration)
+        controller.delegate = context.coordinator
+        return controller
     }
 
-    public func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {
-    }
+    public func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
 
     public func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -51,21 +50,27 @@ extension PHPickerView {
         init(parent: PHPickerView) {
             self.parent = parent
         }
-        
+
         public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             for image in results {
                 parent.progress = image.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (selectedImage, error) in
                     if let error = error {
-                        print("error: \(error.localizedDescription)")
+                        print("📝 error: \(error.localizedDescription)")
+                        self?.parent.progress = nil
                         return
                     }
-                    
+
                     guard let image = selectedImage as? UIImage else {
+                        print("📝 no image error")
+                        self?.parent.progress = nil
                         return
                     }
-                    
+
                     let rotatedImage = image.reorientToUp()!
-                    self?.parent.selectedImage = rotatedImage
+                    Task { @MainActor in
+                        self?.parent.selectedImage = rotatedImage
+                    }
+                    self?.parent.progress = nil
                 }
             }
             parent.presentationMode.wrappedValue.dismiss()
